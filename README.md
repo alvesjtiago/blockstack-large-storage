@@ -1,4 +1,4 @@
-# blockstack-large-files
+# blockstack-large-storage
 
 Blockstack's Gaia storage only allows writing files up to 5MB. Therefore, this package adds the ability to write and get blockstack files larger than 5MB while maintaining direct compatibility for smaller files.
 
@@ -7,7 +7,7 @@ Larger files are chunked into several smaller ones and a referrence is kept on t
 ## Instalation
 
 ``` bash
-$ npm install blockstack-large-files --save
+$ npm install blockstack-large-storage --save
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ $ npm install blockstack-large-files --save
 Complete compatibility with [blockstack's storage API](https://blockstack.github.io/blockstack.js/index.html#storage). The ```putFile``` method is here called ```writeFile``` and the ```getFile``` method is ```readFile```.
 
 ``` javascript
-import { writeFile, readFile } from "blockstack-large-files";
+import { writeFile, readFile } from "blockstack-large-storage";
 ```
 
 ``` javascript
