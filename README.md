@@ -19,6 +19,6 @@ import { writeFile, readFile } from "blockstack-large-storage";
 ```
 
 ``` javascript
-writeFile(path: String, options: Object): Promise
-readFile(path: String, content: (String | Buffer), options: Object): Promise
+readFile(path: String, options: Object): Promise
+writeFile(path: String, content: (String | Buffer), options: Object): Promise
 ```
