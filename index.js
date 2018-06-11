@@ -1,106 +1,115 @@
-"use strict";
-
 import { getFile, putFile } from 'blockstack';
+import { toArrayBuffer } from 'to-array-buffer';
+import { appendBuffer } from './utils/append-buffer';
+import { chunkArray } from './utils/chunk-array';
 
-export { writeFile as writeFile };
-export { readFile as readFile };
+const prefix = 'multifile:';
 
-const prefix = "multifile:"
-
+/**
+ * Write files to blockstack storage regardless of size
+ * @param  {String} path - the path to store the data in
+ * @param  {String|Buffer|File} - the data to store in the file
+ * @param {Object} [options=null] - options object
+ * @param {Boolean} [options.encrypt=true] - encrypt the data with the app private key
+ * @return {Promise} that resolves if the operation succeed and rejects if it failed
+ */
 function writeFile(path, content, options) {
-  const mb = content.size / 1000000.0
-  if (mb > 5) {
+  // Turn contents into array buffer
+  const arrayBuffer = toArrayBuffer(content);
+  // Calculate array buffer size in MB
+  const mb = arrayBuffer.byteLength / 1000000.0;
+  // Adjust the MB cap according to encription
+  const mbCap = (options.encrypt === true || options.encrypt == null) ? 4 : 5;
+
+  // If the size of the buffer is larger than the cap, chunk file
+  if (mb > mbCap) {
     return new Promise((resolve, reject) => {
-      var reader = new FileReader();
-      reader.onload = function() {
+      const array = new Uint8Array(arrayBuffer);
 
-        var arrayBuffer = this.result,
-            array       = new Uint8Array(arrayBuffer);
-
-        const arrayOfFilesBytes = chunkArray(array, 4000000)
-
-        // Write main file
-        var paths = ""
-        arrayOfFilesBytes.forEach(function(element, index) {
-          var new_path = path + "_part" + index
-          paths = paths + new_path + ","
-        });
-        var main_content = prefix + paths
-        putFile(path, main_content, options)
-
-        // Write file parts
-        var promises = []
-        arrayOfFilesBytes.forEach(function(element, index) {
-          var new_path = path + "_part" + index
-          promises.push(putFile(new_path, element, options))
-        });
-        Promise.all(promises)
-          .then(function() {
-            resolve()
-          })
-          .catch(() => {
-            reject()
-          })
+      let chunkSize = 4000000;
+      if (options.encrypt === true || options.encrypt == null) {
+        chunkSize = 3000000;
       }
-      reader.readAsArrayBuffer(content);
-    })
-  } else {
-    return putFile(path, content, options)
+      const arrayOfFilesBytes = chunkArray(array, chunkSize);
+
+      // Write main file
+      let paths = '';
+      arrayOfFilesBytes.forEach((element, index) => {
+        const newPath = `${path}_part${index}`;
+        paths = `${paths}${newPath},`;
+      });
+      const mainContent = prefix + paths;
+      putFile(path, mainContent, options);
+
+      // Write file parts
+      const promises = [];
+      arrayOfFilesBytes.forEach((element, index) => {
+        const newPath = `${path}_part${index}`;
+        promises.push(putFile(newPath, element, options));
+      });
+      Promise.all(promises)
+        .then(() => {
+          resolve();
+        })
+        .catch(() => {
+          reject();
+        });
+    });
   }
+
+  // Default return of blockstack's putFile if file is smaller than cap size
+  return putFile(path, content, options);
 }
 
+/**
+ * Retrieves the specified file from the app's data store and aggregates
+ * if multifile file is found
+ * @param {String} path - the path to the file to read
+ * @param {Object} [options=null] - options object
+ * @param {Boolean} [options.decrypt=true] - try to decrypt the data with the app private key
+ * @param {String} options.username - the Blockstack ID to lookup for multi-player storage
+ * @param {String} options.app - the app to lookup for multi-player storage -
+ * defaults to current origin
+ * @param {String} [options.zoneFileLookupURL=null] - The URL
+ * to use for zonefile lookup. If falsey, this will use the
+ * blockstack.js's getNameInfo function instead.
+ * @returns {Promise} that resolves to the raw data in the file
+ * or rejects with an error
+ */
 function readFile(path, options) {
   return new Promise((resolve, reject) => {
     getFile(path, options)
       .then((file) => {
         if (typeof file === 'string') {
-          var file_string = String(file)
-          if (file_string.length > 10 && file_string.substring(0,10) == prefix) {
+          const fileString = String(file);
+          if (fileString.length > 10 && fileString.substring(0, 10) === prefix) {
             // Get file parts
-            var file_names = file_string.substring(10,file_string.length).split(',')
-            file_names = file_names.filter(function(e){return e}); 
-            var promises = []
-            file_names.forEach(function(element, index) {
-              promises.push(getFile(element, options))
+            let fileNames = fileString.substring(10, fileString.length).split(',');
+            fileNames = fileNames.filter(e => e);
+            const promises = [];
+            fileNames.forEach((element) => {
+              promises.push(getFile(element, options));
             });
             Promise.all(promises)
-              .then(function(values) {
-                var total_bytes = values[0]
-                values.forEach(function(element, index) {
-                  if (index != 0) {
-                    total_bytes = appendBuffer(total_bytes, element)
+              .then((values) => {
+                let totalBytes = values[0];
+                values.forEach((element, index) => {
+                  if (index !== 0) {
+                    totalBytes = appendBuffer(totalBytes, element);
                   }
                 });
-                resolve(total_bytes)
-              })
+                resolve(totalBytes);
+              });
           } else {
-            resolve(file)
+            resolve(file);
           }
         } else {
-          resolve(file)
+          resolve(file);
         }
       }).catch(() => {
-        reject()
-      })
-  })
+        reject();
+      });
+  });
 }
 
-function appendBuffer(buffer1, buffer2) {
-  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-  tmp.set(new Uint8Array(buffer1), 0);
-  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-  return tmp.buffer;
-};
-
-function chunkArray(myArray, chunk_size){
-  var index = 0;
-  var arrayLength = myArray.length;
-  var tempArray = [];
-  
-  for (index = 0; index < arrayLength; index += chunk_size) {
-      var chunk = myArray.slice(index, index+chunk_size);
-      tempArray.push(chunk);
-  }
-
-  return tempArray;
-}
+export { writeFile, readFile };
