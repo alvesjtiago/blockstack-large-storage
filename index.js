@@ -1,5 +1,5 @@
 import { getFile, putFile } from 'blockstack';
-import { toArrayBuffer } from 'to-array-buffer';
+import toArrayBuffer from 'to-array-buffer';
 import { appendBuffer } from './utils/append-buffer';
 import { chunkArray } from './utils/chunk-array';
 
@@ -19,7 +19,8 @@ function writeFile(path, content, options) {
   // Calculate array buffer size in MB
   const mb = arrayBuffer.byteLength / 1000000.0;
   // Adjust the MB cap according to encription
-  const mbCap = (options.encrypt === true || options.encrypt == null) ? 4 : 5;
+  const processedOptions = options || {};
+  const mbCap = (processedOptions.encrypt === true || processedOptions.encrypt == null) ? 4 : 5;
 
   // If the size of the buffer is larger than the cap, chunk file
   if (mb > mbCap) {
@@ -27,7 +28,7 @@ function writeFile(path, content, options) {
       const array = new Uint8Array(arrayBuffer);
 
       let chunkSize = 4000000;
-      if (options.encrypt === true || options.encrypt == null) {
+      if (processedOptions.encrypt === true || processedOptions.encrypt == null) {
         chunkSize = 3000000;
       }
       const arrayOfFilesBytes = chunkArray(array, chunkSize);
@@ -58,7 +59,7 @@ function writeFile(path, content, options) {
   }
 
   // Default return of blockstack's putFile if file is smaller than cap size
-  return putFile(path, content, options);
+  return putFile(path, content, processedOptions);
 }
 
 /**

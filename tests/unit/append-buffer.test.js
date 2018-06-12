@@ -7,7 +7,7 @@ test('should append one buffer to the other', (t) => {
   const totalBuffer = appendBuffer(mainBuffer, appendingBuffer);
   t.equal(4, totalBuffer.byteLength);
   t.end();
-})
+});
 
 test('should append last buffer element to first element', (t) => {
   const mainBuffer = new Uint8Array([1, 2]).buffer;
