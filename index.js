@@ -59,7 +59,10 @@ function writeFile(path, content, options) {
   }
 
   // Default return of blockstack's putFile if file is smaller than cap size
-  return putFile(path, content, processedOptions);
+  if (typeof content === "string") {
+    return putFile(path, content, processedOptions);
+  }
+  return putFile(path, arrayBuffer, processedOptions);
 }
 
 /**
