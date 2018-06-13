@@ -1,4 +1,4 @@
-# blockstack-large-storage
+# blockstack-large-storage [![Build Status](https://travis-ci.org/alvesjtiago/blockstack-large-storage.svg?branch=master)](https://travis-ci.org/alvesjtiago/blockstack-large-storage)
 
 Blockstack's Gaia storage only allows writing files up to 5MB. Therefore, this package adds the ability to write and get blockstack files larger than 5MB while maintaining direct compatibility for smaller files.
 
