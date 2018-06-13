@@ -4,7 +4,8 @@
   "description": "Add ability to write and get blockstack files larger than 5MB while maintaining direct compatibility for smaller files.",
   "main": "index.js",
   "scripts": {
-    "test": "tape -r @babel/register tests/unit/*.js | faucet"
+    "test": "tape -r @babel/register tests/unit/*.js | faucet",
+    "test-browser": "browserify tests/browser/*.js | tape-run"
   },
   "keywords": [
     "blockstack",
@@ -17,17 +18,32 @@
     "to-array-buffer": "^2.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.49",
+    "@babel/core": "^7.0.0-beta.51",
     "@babel/preset-env": "^7.0.0-beta.49",
     "@babel/register": "^7.0.0-beta.49",
+    "babelify": "^9.0.0",
+    "browserify": "^16.2.2",
     "eslint": "^4.19.1",
     "eslint-config-airbnb": "^16.1.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.12.0",
     "faucet": "0.0.1",
     "proxyquire": "^2.0.1",
+    "proxyquireify": "^3.2.1",
     "sinon": "^6.0.0",
     "tape": "^4.9.1",
     "tape-run": "^4.0.0"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "@babel/preset-env"
+          ]
+        }
+      ]
+    ]
   }
 }
