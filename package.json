@@ -29,7 +29,6 @@
     "eslint-plugin-import": "^2.12.0",
     "faucet": "0.0.1",
     "proxyquire": "^2.0.1",
-    "proxyquireify": "^3.2.1",
     "sinon": "^6.0.0",
     "tape": "^4.9.1",
     "tape-run": "^4.0.0"
