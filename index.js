@@ -1,7 +1,7 @@
 import { getFile, putFile } from 'blockstack';
 import toArrayBuffer from 'to-array-buffer';
-import { appendBuffer } from './utils/append-buffer';
-import { chunkArray } from './utils/chunk-array';
+import appendBuffer from './utils/append-buffer';
+import chunkArray from './utils/chunk-array';
 
 const prefix = 'multifile:';
 
@@ -14,9 +14,27 @@ const prefix = 'multifile:';
  * @return {Promise} that resolves if the operation succeed and rejects if it failed
  */
 function writeFile(path, content, options) {
-  // Turn contents into array buffer
-  const arrayBuffer = toArrayBuffer(content);
+  if (typeof window !== 'undefined') {
+    if (content instanceof File || content instanceof Blob) {
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
+        reader.onload = () => {
+          const arrayBuffer = reader.result;
+          resolve(processFile(path, arrayBuffer, options));
+        };
+        reader.readAsArrayBuffer(content);
+      });
+    } else {
+      return processFile(path, content, options);
+    }
+  } else {
+    return processFile(path, content, options);
+  }
+}
+
+function processFile(path, content, options) {
   // Calculate array buffer size in MB
+  const arrayBuffer = toArrayBuffer(content);
   const mb = arrayBuffer.byteLength / 1000000.0;
   // Adjust the MB cap according to encription
   const processedOptions = options || {};
@@ -59,7 +77,7 @@ function writeFile(path, content, options) {
   }
 
   // Default return of blockstack's putFile if file is smaller than cap size
-  if (typeof content === "string") {
+  if (typeof content === 'string') {
     return putFile(path, content, processedOptions);
   }
   return putFile(path, arrayBuffer, processedOptions);

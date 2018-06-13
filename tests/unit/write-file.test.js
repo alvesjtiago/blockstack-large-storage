@@ -24,7 +24,7 @@ test('should return resolve promise on small file when writing', (t) => {
 });
 
 test('should return resolve promise on big file when writing', (t) => {
-  fs.readFile(path.resolve(__dirname, '../data/test.jpg'), null, function (err, nb) {
+  fs.readFile(path.resolve(__dirname, '../data/test.jpg'), null, (err, nb) => {
     const ab = nb.buffer;
     largeStorage.writeFile(ab, 'test.jpg')
       .then(() => {
