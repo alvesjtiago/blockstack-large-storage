@@ -5,33 +5,6 @@ import chunkArray from './utils/chunk-array';
 
 const prefix = 'multifile:';
 
-/**
- * Write files to blockstack storage regardless of size
- * @param  {String} path - the path to store the data in
- * @param  {String|Buffer|File} - the data to store in the file
- * @param {Object} [options=null] - options object
- * @param {Boolean} [options.encrypt=true] - encrypt the data with the app private key
- * @return {Promise} that resolves if the operation succeed and rejects if it failed
- */
-function writeFile(path, content, options) {
-  if (typeof window !== 'undefined') {
-    if (content instanceof File || content instanceof Blob) {
-      const reader = new FileReader();
-      return new Promise((resolve, reject) => {
-        reader.onload = () => {
-          const arrayBuffer = reader.result;
-          resolve(processFile(path, arrayBuffer, options));
-        };
-        reader.readAsArrayBuffer(content);
-      });
-    } else {
-      return processFile(path, content, options);
-    }
-  } else {
-    return processFile(path, content, options);
-  }
-}
-
 function processFile(path, content, options) {
   // Calculate array buffer size in MB
   const arrayBuffer = toArrayBuffer(content);
@@ -47,7 +20,7 @@ function processFile(path, content, options) {
 
       let chunkSize = 4000000;
       if (processedOptions.encrypt === true || processedOptions.encrypt == null) {
-        chunkSize = 3000000;
+        chunkSize = 2500000;
       }
       const arrayOfFilesBytes = chunkArray(array, chunkSize);
 
@@ -81,6 +54,33 @@ function processFile(path, content, options) {
     return putFile(path, content, processedOptions);
   }
   return putFile(path, arrayBuffer, processedOptions);
+}
+
+/**
+ * Write files to blockstack storage regardless of size
+ * @param  {String} path - the path to store the data in
+ * @param  {String|Buffer|File} - the data to store in the file
+ * @param {Object} [options=null] - options object
+ * @param {Boolean} [options.encrypt=true] - encrypt the data with the app private key
+ * @return {Promise} that resolves if the operation succeed and rejects if it failed
+ */
+function writeFile(path, content, options) {
+  if (typeof window !== 'undefined') {
+    if (content instanceof File || content instanceof Blob) {
+      const reader = new FileReader();
+      return new Promise((resolve) => {
+        reader.onload = () => {
+          const arrayBuffer = reader.result;
+          resolve(processFile(path, arrayBuffer, options));
+        };
+        reader.readAsArrayBuffer(content);
+      });
+    }
+
+    return processFile(path, content, options);
+  }
+
+  return processFile(path, content, options);
 }
 
 /**
