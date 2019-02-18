@@ -1,6 +1,6 @@
 {
   "name": "blockstack-large-storage",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Add ability to write and get blockstack files larger than 5MB while maintaining direct compatibility for smaller files.",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   "author": "Tiago Alves <alvesjtiago@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "blockstack": "^18.1.0",
+    "blockstack": "^18.3.0",
     "to-array-buffer": "^2.1.0"
   },
   "devDependencies": {
