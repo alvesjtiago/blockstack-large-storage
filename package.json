@@ -10,6 +10,6 @@
   "author": "Tiago Alves <alvesjtiago@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "blockstack": "^17.2.0"
+    "blockstack": "^19.3.0"
   }
 }
